@@ -1,19 +1,9 @@
 from django.shortcuts import get_object_or_404
-from posts.models import Post, Group, Comment
 from rest_framework import viewsets, permissions
 
+from posts.models import Post, Group, Comment
 from .serializers import PostSerializer, GroupSerializer, CommentSerializer
-
-
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    """
-    Разрешение позволяющее редактировать объект только владельцам.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author == request.user
+from .permissions import IsOwnerOrReadOnly
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -36,7 +26,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
-        post_comments = Comment.objects.filter(post=post)
+        post_comments = post.comments.all()
         return post_comments
 
 
